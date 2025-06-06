@@ -18,8 +18,9 @@ namespace BloggingSystem.Application.Services
         }
 
 
-        public async Task<BlogDto> CreateBlogAsync(BlogDto blogDto)
+        public async Task<object> CreateBlogAsync(BlogDto blogDto)
         {
+            try { 
             var blog = new Blog
             {
                 Name = blogDto.Name,
@@ -30,47 +31,92 @@ namespace BloggingSystem.Application.Services
            
             await _unitOfWork.Blogs.AddAsync(blog);
             await _unitOfWork.CommitAsync();
-            return new BlogDto { Id = blog.Id, Name = blog.Name, Url = blog.Url, AuthorId = blog.AuthorId };
+            var saveBlog= new BlogDto { Id = blog.Id, Name = blog.Name, Url = blog.Url, AuthorId = blog.AuthorId };
+
+            return new { success = true, message = "New blog added successfully", blog = saveBlog };
+        }
+            catch (Exception ex)
+            {
+                return new { success = false, message = "Error adding author", error = ex.Message
+    };
+}
+            
         }
 
-       
 
 
-
-        public async Task<IEnumerable<BlogDto>> GetAllBlogsAsync()
+        public async Task<object> GetAllBlogsAsync()
         {
-            var blogs = await _unitOfWork.Blogs.GetAllAsync();
-            return blogs.Select(b => new BlogDto { Id = b.Id, Name = b.Name, AuthorId = b.AuthorId });
+            try
+            {
+                var blogs = await _unitOfWork.Blogs.GetAllAsync();
+                var result = blogs.Select(b => new BlogDto { Id = b.Id, Name = b.Name, AuthorId = b.AuthorId });
+
+                return new { success = true, message = "Blogs retrieved successfully", data = result };
+            }
+            catch (Exception ex)
+            {
+                return new { success = false, message = "Error retrieving blogs", error = ex.Message };
+            }
         }
 
-        public async Task<bool> DeleteBlogAsync(int id)
+
+        public async Task<object> GetBlogByIdAsync(int id)
         {
-            var blog = await _unitOfWork.Blogs.GetByIdAsync(id);
-            if (blog == null) return false;
-            _unitOfWork.Blogs.Remove(blog);
-            await _unitOfWork.CommitAsync();
-            return true;
+            try
+            {
+                var blog = await _unitOfWork.Blogs.GetByIdAsync(id);
+                if (blog == null)
+                    return new { success = false, message = "Blog not found" };
+
+                var blogDto = new BlogDto { Id = blog.Id, Name = blog.Name, AuthorId = blog.AuthorId };
+                return new { success = true, message = "Blog retrieved successfully", data = blogDto };
+            }
+            catch (Exception ex)
+            {
+                return new { success = false, message = "Error retrieving blog", error = ex.Message };
+            }
         }
 
-        public async Task<BlogDto> GetBlogByIdAsync(int id)
-        {
-            var blog = await _unitOfWork.Blogs.GetByIdAsync(id);
-            if (blog == null) return null;
-            return new BlogDto { Id = blog.Id, Name = blog.Name, AuthorId = blog.AuthorId };
-        }
-
-        public async Task<List<BlogDto>> GetBlogsByAuthorIdAsync(int authorId)
-        {
+        public async Task<object> GetBlogsByAuthorIdAsync(int authorId)
+        
+            {
+            try { 
             var blogs = await _unitOfWork.Blogs.GetBlogsByAuthorIdAsync(authorId);
-            return blogs.Select(b => new BlogDto
+            var blogDtos = blogs.Select(b => new BlogDto
             {
                 Id = b.Id,
                 Name = b.Name,
                 Url = b.Url,
                 AuthorId = b.AuthorId
             }).ToList();
+
+                return new { success = true, message = "Blogs retrieved successfully", blogs = blogDtos };
+            }
+            catch (Exception ex)
+            {
+                return new { success = false, message = "Error retrieving blogs", error = ex.Message };
+            }
         }
 
+        public async Task<object> DeleteBlogAsync(int id)
+        {
+            try
+            {
+                var blog = await _unitOfWork.Blogs.GetByIdAsync(id);
+                if (blog == null)
+                    return new { success = false, message = "Blog not found" };
+
+                _unitOfWork.Blogs.Remove(blog);
+                await _unitOfWork.CommitAsync();
+
+                return new { success = true, message = "Blog deleted successfully" };
+            }
+            catch (Exception ex)
+            {
+                return new { success = false, message = "Error deleting blog", error = ex.Message };
+            }
+        }
 
     }
 }

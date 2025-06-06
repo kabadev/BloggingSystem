@@ -20,8 +20,15 @@ namespace BloggingSystem.API.Controllers
         public async Task<IActionResult> CreateAuthor([FromBody] AuthorDto authorDto)
         {
             var result = await _authorService.CreateAuthorAsync(authorDto);
-            return CreatedAtAction(nameof(GetAuthor), new { id = result.Id }, result);
+            var successProperty = result.GetType().GetProperty("success");
+            if (successProperty != null && !(bool)successProperty.GetValue(result))
+            {
+                return BadRequest(result); 
+            }
+
+            return Ok(result);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> GetAllAuthors()
@@ -44,8 +51,13 @@ namespace BloggingSystem.API.Controllers
         public async Task<IActionResult> DeleteAuthor(int id)
         {
             var result = await _authorService.DeleteAuthorAsync(id);
-            if (!result) return NotFound();
-            return NoContent();
+            var success = (bool)result.GetType().GetProperty("success")?.GetValue(result);
+
+            if (!success)
+                return NotFound(result); 
+
+            return Ok(result);
         }
+
     }
 }

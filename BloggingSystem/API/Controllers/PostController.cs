@@ -20,7 +20,14 @@ namespace BloggingSystem.API.Controllers
         public async Task<IActionResult> CreatePost([FromBody] PostDto postDto)
         {
             var result = await _postService.CreatePostAsync(postDto);
-            return CreatedAtAction(nameof(GetPostsByBlog), new { blogId = result.BlogId }, result);
+            //return CreatedAtAction(nameof(GetPostsByBlog), new { blogId = result.BlogId }, result);
+            var successProperty = result.GetType().GetProperty("success");
+            if (successProperty != null && !(bool)successProperty.GetValue(result))
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
 
 
@@ -46,8 +53,12 @@ namespace BloggingSystem.API.Controllers
         public async Task<IActionResult> DeletePost(int id)
         {
             var result = await _postService.DeletePostAsync(id);
-            if (!result) return NotFound();
-            return NoContent();
+            var success = (bool)result.GetType().GetProperty("success")?.GetValue(result);
+
+            if (!success)
+                return NotFound(result);
+
+            return Ok(result);
         }
     }
 }
