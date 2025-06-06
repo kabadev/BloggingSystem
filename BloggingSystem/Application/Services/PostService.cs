@@ -9,11 +9,11 @@ namespace BloggingSystem.Application.Services
 {
     public class PostService
     {
-        private readonly IPostRepository _postRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public PostService(IPostRepository postRepository)
+        public PostService(IUnitOfWork unitOfWork)
         {
-            _postRepository = postRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<PostDto> CreatePostAsync(PostDto postDto)
@@ -26,7 +26,8 @@ namespace BloggingSystem.Application.Services
                 BlogId = postDto.BlogId
             };
 
-            await _postRepository.AddAsync(post);
+            await _unitOfWork.Posts.AddAsync(post);
+            await _unitOfWork.CommitAsync();
             return new PostDto
             {
                 Id = post.Id,
@@ -39,7 +40,7 @@ namespace BloggingSystem.Application.Services
 
         public async Task<IEnumerable<PostDto>> GetAllPostsAsync()
         {
-            var posts = await _postRepository.GetAllAsync();
+            var posts = await _unitOfWork.Posts.GetAllAsync();
             return posts.Select(p => new PostDto { Id = p.Id, Title = p.Title, Content = p.Content, BlogId = p.BlogId });
         }
 
@@ -47,7 +48,7 @@ namespace BloggingSystem.Application.Services
         public async Task<List<PostDto>> GetPostsByBlogIdAsync(int blogId)
         {
             // Get posts from repository (already awaited)
-            var posts = await _postRepository.GetPostsByBlogIdAsync(blogId);
+            var posts = await _unitOfWork.Posts.GetPostsByBlogIdAsync(blogId);
 
             // Map domain entities to DTOs and return as list
             return posts.Select(p => new PostDto
@@ -63,9 +64,10 @@ namespace BloggingSystem.Application.Services
 
         public async Task<bool> DeletePostAsync(int id)
         {
-            var post = await _postRepository.GetByIdAsync(id);
+            var post = await _unitOfWork.Posts.GetByIdAsync(id);
             if (post == null) return false;
-            _postRepository.Remove(post);
+            _unitOfWork.Posts.Remove(post);
+            await _unitOfWork.CommitAsync();
             return true;
         }
     }

@@ -10,12 +10,13 @@ namespace BloggingSystem.Application.Services
 {
     public class BlogService
     {
-        private readonly IBlogRepository _blogRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public BlogService(IBlogRepository blogRepository)
+        public BlogService(IUnitOfWork unitOfWork)
         {
-            _blogRepository = blogRepository;
+            _unitOfWork = unitOfWork;
         }
+
 
         public async Task<BlogDto> CreateBlogAsync(BlogDto blogDto)
         {
@@ -26,32 +27,41 @@ namespace BloggingSystem.Application.Services
                 AuthorId = blogDto.AuthorId
             };
 
-            await _blogRepository.AddAsync(blog);
+           
+            await _unitOfWork.Blogs.AddAsync(blog);
+            await _unitOfWork.CommitAsync();
             return new BlogDto { Id = blog.Id, Name = blog.Name, Url = blog.Url, AuthorId = blog.AuthorId };
         }
 
-        public async Task<List<BlogDto>> GetAllBlogsAsync()
+       
+
+
+
+        public async Task<IEnumerable<BlogDto>> GetAllBlogsAsync()
         {
-            var blogs = await _blogRepository.GetAllAsync();
-            return blogs.Select(b => new BlogDto
-            {
-                Id = b.Id,
-                Name = b.Name,
-                Url = b.Url,
-                AuthorId = b.AuthorId
-            }).ToList();
+            var blogs = await _unitOfWork.Blogs.GetAllAsync();
+            return blogs.Select(b => new BlogDto { Id = b.Id, Name = b.Name, AuthorId = b.AuthorId });
+        }
+
+        public async Task<bool> DeleteBlogAsync(int id)
+        {
+            var blog = await _unitOfWork.Blogs.GetByIdAsync(id);
+            if (blog == null) return false;
+            _unitOfWork.Blogs.Remove(blog);
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<BlogDto> GetBlogByIdAsync(int id)
         {
-            var blog = await _blogRepository.GetByIdAsync(id);
+            var blog = await _unitOfWork.Blogs.GetByIdAsync(id);
             if (blog == null) return null;
             return new BlogDto { Id = blog.Id, Name = blog.Name, AuthorId = blog.AuthorId };
         }
 
         public async Task<List<BlogDto>> GetBlogsByAuthorIdAsync(int authorId)
         {
-            var blogs = await _blogRepository.GetBlogsByAuthorIdAsync(authorId);
+            var blogs = await _unitOfWork.Blogs.GetBlogsByAuthorIdAsync(authorId);
             return blogs.Select(b => new BlogDto
             {
                 Id = b.Id,
@@ -61,12 +71,6 @@ namespace BloggingSystem.Application.Services
             }).ToList();
         }
 
-        public async Task<bool> DeleteBlogAsync(int id)
-        {
-            var blog = await _blogRepository.GetByIdAsync(id);
-            if (blog == null) return false;
-            _blogRepository.Remove(blog);
-            return true;
-        }
+
     }
 }
