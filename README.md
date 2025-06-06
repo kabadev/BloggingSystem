@@ -6,7 +6,7 @@ A clean architecture-based RESTful API built with ASP.NET Core, Entity Framework
 
 ---
 
-## 🧱 Project Structure
+##  Project Structure
 
 ```
 BloggingSystem/
@@ -19,7 +19,7 @@ BloggingSystem/
 
 ---
 
-## 🔧 Technologies Used
+##  Technologies Used
 
 - ASP.NET Core Web API  (.NET 8.0.0)
 - Entity Framework Core  
@@ -28,9 +28,13 @@ BloggingSystem/
 - Repository & Unit of Work Pattern  
 - Clean JSON Response Wrapping  
 
+### Packages used
+   - dotnet add package Microsoft.EntityFrameworkCore
+   - dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+   - dotnet add package Microsoft.EntityFrameworkCore.Tools
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -68,7 +72,7 @@ BloggingSystem/
 
 ---
 
-## 📦 API Endpoints Overview
+##  API Endpoints Overview
 
 ### 🔹 Authors
 
@@ -95,7 +99,7 @@ BloggingSystem/
 
 ---
 
-## ✅ Response Format
+##  Response Format
 
 All responses follow a standardized format:
 
@@ -119,7 +123,7 @@ Error:
 
 ---
 
-## 📌 Future Enhancements
+##  Future Enhancements
 -read and write operations (command and query)
 - Add authentication/authorization (JWT)
 - Implement pagination
@@ -128,12 +132,12 @@ Error:
 
 ---
 
-## 🧑‍💻 Contributing
+##  Contributing
 
 Pull requests are welcome. Please open an issue first to discuss your proposal.
 
 ---
 
-## 📄 License
+##  License
 
 This project is open-source and available under the MIT License.
